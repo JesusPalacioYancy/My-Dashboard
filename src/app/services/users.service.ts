@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { User, UserResponse } from '@interface/req-response';
-import { delay } from 'rxjs';
+import { User, UserResponse, UsersResponse } from '@interface/req-response';
+import { delay, map, Observable } from 'rxjs';
 
 interface State{
   users: User[];
@@ -15,7 +15,7 @@ interface State{
 export class UsersService {
 
   private http = inject(HttpClient);
-  private baseUrl: string = 'https://reqres.in/api/users?page=2';
+  private baseUrl: string = 'https://reqres.in/api/users';
 
   #state = signal<State>({
     loadingt: true,
@@ -26,11 +26,20 @@ export class UsersService {
   public loading = computed(() => this.#state().loadingt);
 
   constructor() {
-    this.http.get<UserResponse>(`${this.baseUrl}`)
-      .pipe(delay(2000))
+    this.http.get<UsersResponse>(`${this.baseUrl}`)
+      .pipe(delay(1500))
       .subscribe(
         (res) => this.#state.set(
           { users: res.data, loadingt: false }));
-  }
+  };
 
-}
+
+  getUserById(id: number): Observable<User | undefined> {
+    return this.http.get<UserResponse>(`${this.baseUrl}/${id}`)
+      .pipe(
+        delay(1500),
+        map((res) => res.data)
+      );
+  };
+
+};
